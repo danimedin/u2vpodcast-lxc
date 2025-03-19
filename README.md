@@ -6,7 +6,7 @@ He creado una receta de ansible que traduce el docker compose que propone el des
 
 ## Requisitos
 
-### config.cfg
+### config.yml
 Debes tener creado un archivo de configuración. Puedes ver uno de ejemplo en config-ejemplo.yml
 
 ### cookies.txt
