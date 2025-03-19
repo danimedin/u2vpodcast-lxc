@@ -1,0 +1,12 @@
+ungrouped:
+  hosts:
+    builder-axum:
+      ansible_host: 192.168.1.51
+      ansible_python_interpreter: /usr/bin/python3.9
+    u2vpodcast-axum:
+      ansible_host: 192.168.1.52    
+      ansible_python_interpreter: /usr/bin/python3.11
+  vars:
+      ansible_ssh_private_key_file: ~/.ssh/id_ecdsa
+      ansible_user: root
+      ansible_python_interpreter: /usr/bin/python3.12

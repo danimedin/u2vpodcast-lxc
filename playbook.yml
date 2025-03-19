@@ -1,0 +1,189 @@
+---
+- hosts: builder-axum
+  vars:
+    veces_dia: 1
+  roles: 
+    - '/home/dani/ansible/roles/rust'
+    
+  tasks:
+    - name: rust up target 
+      ansible.builtin.shell:
+        cmd: /root/.cargo/bin/rustup target add x86_64-unknown-linux-musl
+        executable: /bin/sh
+        chdir: /root/
+    - name: Instala software
+      ansible.builtin.apt:
+        name: '{{ item }}'
+        state: present
+      with_items:
+        - pkg-config
+        - musl-tools
+        - build-essential
+        - cmake
+        - musl-dev
+        - pkg-config
+        - rsync
+        - git
+
+    - name: crea directorio app
+      ansible.builtin.file:
+        path: /app
+        owner: root
+        group: root
+        state: directory
+ 
+    - name: clona o repositorio git
+      ansible.builtin.git:
+        repo: 'https://github.com/atareao/u2vpodcast.git'
+        dest: /tmp/u2vpodcast
+        version: axum
+      register: copyscr
+    - name: copy Cargo.toml
+      ansible.builtin.copy:
+        src: /tmp/u2vpodcast/Cargo.toml
+        dest: /app/
+        remote_src: true
+      register: cargotoml
+
+    - name: cambia o sleep time
+      ansible.builtin.lineinfile:
+        path: /tmp/u2vpodcast/src/main.rs
+        regex: 'let sleep_time'
+        line: "let sleep_time: u64 = configuration.get_sleep_time() * (86400 / {{ veces_dia }}) ;"
+    - name: Bloque que se fai cando algo cambia
+      block: 
+        - name: copia o src a app
+          ansible.builtin.copy:
+            src: /tmp/u2vpodcast/src
+            dest: /app
+            remote_src: true
+
+        - name: cargo build
+          ansible.builtin.shell: 
+            cmd: /root/.cargo/bin/cargo build --release --target x86_64-unknown-linux-musl
+            chdir: /app/
+            executable: /bin/sh     
+        - name: copy app from target
+          ansible.builtin.copy:
+            src: /app/target/x86_64-unknown-linux-musl/release/u2vpodcast
+            dest: /app/u2vpodcast
+            remote_src: true
+        - name: Move a aplicación dende Backend-builder a local
+          ansible.builtin.fetch:
+            src: /app/u2vpodcast
+            dest: .
+
+      when: copyscr.changed  or cargotoml.changed
+  
+- hosts: u2vpodcast-axum
+  tasks:
+    - name: Instla software
+      community.general.apk:
+        name: "{{ item }}"
+        state: present
+        update_cache: true
+        no_cache: true
+      with_items:
+        - "ffmpeg~=6.0"
+        - "git~=2.40"
+        - "sqlite"
+        - "py3-pip~=23.1"
+        - "rsync"
+        - "vim"
+        - "screen"
+        
+        
+
+
+    - name: crea directorio app
+      ansible.builtin.file:
+        path: /app
+        owner: root
+        group: root
+        state: directory
+    - name: Move a aplicación app a U2VPodcast
+      ansible.builtin.copy: 
+        src: ./builder-axum/app/u2vpodcast
+        dest: /app
+        mode: 'u+x'
+
+
+
+    
+
+    - name: clona o repositorio git
+      ansible.builtin.git:
+        repo: 'https://github.com/atareao/u2vpodcast.git'
+        dest: /tmp/u2vpodcast
+        version: axum
+    - name: Move a migrations a U2VPodcast
+      ansible.builtin.copy: 
+        src: /tmp/u2vpodcast/migrations 
+        dest: /app/
+        remote_src: true
+
+    - name: Move a templates a U2VPodcast
+      ansible.builtin.copy: 
+        src: /tmp/u2vpodcast/templates 
+        dest: /app/
+        remote_src: true
+        
+    - name: Move a assets a U2VPodcast
+      ansible.builtin.copy: 
+        src: /tmp/u2vpodcast/assets 
+        dest: /app/
+        remote_src: true
+    - name: Engade usuario
+      ansible.builtin.user:
+        home: /app
+        create_home: false
+        name: app
+        password: '!'
+        uid: 10001
+     
+    - name: crea directorio app/audios
+      ansible.builtin.file:
+        path: /app/audios
+        owner: root
+        group: root
+        state: directory        
+    - name: crea directorio app/audios
+      ansible.builtin.file:
+        path: /app/db
+        owner: root
+        group: root
+        state: directory
+    - name: copia files e cookies
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: /app
+      with_items:
+        - "./config.yml"
+        - "./cookies.txt"
+    - name: Cambia o propietario da app
+      ansible.builtin.file:
+        path: /app
+        owner: app
+        recurse: true
+    - name: instala yt-dlp
+      ansible.builtin.shell:
+        cmd: python3 -m pip install --user --upgrade git+https://github.com/yt-dlp/yt-dlp.git@release
+        chdir: /app/
+        executable: /bin/sh 
+    - name: crontab app
+      ansible.builtin.cron:
+        name: Lanza u2vpodcast nunha screen para o usuario app
+        user: app
+        special_time: "reboot"
+        job: "screen -d -m /app/u2vpodcast"
+    - name: delete old videos 
+      ansible.builtin.cron:
+        name: Borra os arquivos de máis de 150 días
+        user: app
+        minute: "0"
+        hour: "3"
+        job: 'find /app/audios -type f -mtime +150 -exec rm -f {} \;'
+    - name: Reinicia
+      ansible.builtin.reboot:
+
+        
