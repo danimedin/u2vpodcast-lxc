@@ -1,0 +1,27 @@
+dev: false
+log_level: debug
+db_url: sqlite:db/u2vpodcast.db
+port: 6996
+sleep_time: 1
+with_authentication: false
+username: username
+password: password
+url: https://u2vpodcast.mihost.info
+cookies: cookies.txt
+per_page: 3
+channels:
+  - url: https://www.youtube.com/@srpablow/videos
+    title: SrPablow-Videos
+    description: SrPablow videos
+    image: https://yt3.googleusercontent.com/MHoEUiEcdUAA1wP6BtSmj7qWSkgIno3WSizakec94LwwSekV5NdQZT7cPPH8NSFuMTEiW-YxyWM=s160-c-k-c0x00ffffff-no-rj
+    first: "2025-01-28T10:20:00Z"
+  - url: https://www.youtube.com/@srpablow/streams
+    title: SrPablow-Directos
+    description: SrPablow Directos
+    image: https://yt3.googleusercontent.com/MHoEUiEcdUAA1wP6BtSmj7qWSkgIno3WSizakec94LwwSekV5NdQZT7cPPH8NSFuMTEiW-YxyWM=s160-c-k-c0x00ffffff-no-rj
+    first: "2025-01-28T10:20:00Z"
+  - url: https://www.youtube.com/@TecnocraticaNet/streams
+    title: Tecnocratica-Directos
+    description: Tecnocratica Directos
+    image: https://yt3.googleusercontent.com/UHCCRjtmnP3WkvUcO_O5oCAAfBmAN_2ncUj6RHi242qBAGwCenjOjugtADtz5gLHqCCP5Ujm=s160-c-k-c0x00ffffff-no-rj
+    first: "2025-01-01T10:20:00Z"

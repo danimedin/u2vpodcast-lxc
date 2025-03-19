@@ -2,8 +2,9 @@
 - hosts: builder-axum
   vars:
     veces_dia: 1
+    ruta_rust: '~/ansible/roles/rust_role'
   roles: 
-    - '/home/dani/ansible/roles/rust'
+    - "{{ ruta_rust }}"
     
   tasks:
     - name: rust up target 
@@ -32,27 +33,27 @@
         group: root
         state: directory
  
-    - name: clona o repositorio git
+    - name: clona el repositorio git
       ansible.builtin.git:
         repo: 'https://github.com/atareao/u2vpodcast.git'
         dest: /tmp/u2vpodcast
         version: axum
       register: copyscr
-    - name: copy Cargo.toml
+    - name: copia Cargo.toml
       ansible.builtin.copy:
         src: /tmp/u2vpodcast/Cargo.toml
         dest: /app/
         remote_src: true
       register: cargotoml
 
-    - name: cambia o sleep time
+    - name: cambia el sleep time
       ansible.builtin.lineinfile:
         path: /tmp/u2vpodcast/src/main.rs
         regex: 'let sleep_time'
         line: "let sleep_time: u64 = configuration.get_sleep_time() * (86400 / {{ veces_dia }}) ;"
-    - name: Bloque que se fai cando algo cambia
+    - name: Bloque que se hace cuando de lo anterior cambia
       block: 
-        - name: copia o src a app
+        - name: copia el src a app
           ansible.builtin.copy:
             src: /tmp/u2vpodcast/src
             dest: /app
@@ -68,7 +69,7 @@
             src: /app/target/x86_64-unknown-linux-musl/release/u2vpodcast
             dest: /app/u2vpodcast
             remote_src: true
-        - name: Move a aplicación dende Backend-builder a local
+        - name: Mueve la aplicación desde Backend-builder a local
           ansible.builtin.fetch:
             src: /app/u2vpodcast
             dest: .
@@ -101,7 +102,7 @@
         owner: root
         group: root
         state: directory
-    - name: Move a aplicación app a U2VPodcast
+    - name: Mueve la aplicación app a U2VPodcast
       ansible.builtin.copy: 
         src: ./builder-axum/app/u2vpodcast
         dest: /app
@@ -111,29 +112,29 @@
 
     
 
-    - name: clona o repositorio git
+    - name: clona el repositorio git
       ansible.builtin.git:
         repo: 'https://github.com/atareao/u2vpodcast.git'
         dest: /tmp/u2vpodcast
         version: axum
-    - name: Move a migrations a U2VPodcast
+    - name: Mueve migrations a U2VPodcast
       ansible.builtin.copy: 
         src: /tmp/u2vpodcast/migrations 
         dest: /app/
         remote_src: true
 
-    - name: Move a templates a U2VPodcast
+    - name: Mueve templates a U2VPodcast
       ansible.builtin.copy: 
         src: /tmp/u2vpodcast/templates 
         dest: /app/
         remote_src: true
         
-    - name: Move a assets a U2VPodcast
+    - name: Mueve assets a U2VPodcast
       ansible.builtin.copy: 
         src: /tmp/u2vpodcast/assets 
         dest: /app/
         remote_src: true
-    - name: Engade usuario
+    - name: Añade el usuario
       ansible.builtin.user:
         home: /app
         create_home: false
@@ -153,14 +154,14 @@
         owner: root
         group: root
         state: directory
-    - name: copia files e cookies
+    - name: copia files y cookies
       ansible.builtin.copy:
         src: "{{ item }}"
         dest: /app
       with_items:
         - "./config.yml"
         - "./cookies.txt"
-    - name: Cambia o propietario da app
+    - name: Cambia el propietario de la app
       ansible.builtin.file:
         path: /app
         owner: app
@@ -172,13 +173,13 @@
         executable: /bin/sh 
     - name: crontab app
       ansible.builtin.cron:
-        name: Lanza u2vpodcast nunha screen para o usuario app
+        name: Lanza u2vpodcast en una screen para el usuario app
         user: app
         special_time: "reboot"
         job: "screen -d -m /app/u2vpodcast"
     - name: delete old videos 
       ansible.builtin.cron:
-        name: Borra os arquivos de máis de 150 días
+        name: Borra los arquivos de más de 150 días
         user: app
         minute: "0"
         hour: "3"
