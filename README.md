@@ -1,7 +1,7 @@
 # u2vpodcast-lxc
 Prepara la aplicación u2vpodcast (https://github.com/atareao/u2vpodcast) para funcionar sobre contenedores LXC o máquinas virtuales utilizando recetas **Ansible**. La rama escogida de u2vpodcast es la rama **axum**.
 
-He creado una receta de ansible que traduce el docker compose que propone el desarrollador de u2vpodcast y por lo tanto se puede aplicar a maquinas virtuales o contenedores LXC.
+He creado una receta de ansible que traduce el docker compose que propone el desarrollador de u2vpodcast y por lo tanto se puede aplicar a maquinas virtuales o contenedores LXC y por lo tanto no utilizar **Docker**.
 
 
 ## Requisitos
@@ -42,3 +42,20 @@ La ruta donde hay que descargar los archivos del rol está especificada en el fi
 ## Como lanzo la receta
 
 ansible-playbook -i inventario.yml playbook.yml
+
+## Recomendaciones
+
+Si la aplicación u2vpodcast intenta descargar un vídeo que se está emitiendo en streamming falla.
+
+La aplicación consulta Youtube cada 24 horas por defecto (variable veces_dia del archivo playbook.yml).
+
+Por este motivo recomiendo lanzar la aplicación a una hora en que no se publiquen streammings, como por ejemplo, de madrugada.
+
+
+## Ver el estado de aplicación
+
+La aplicación se lanza cuando arranca la máquina, para ver su salida por consola:
+
+ - su - app . Te loguea como el usuario de la aplicación.
+ - screen -r 
+ - Para salir del screen: *Crlt + a + d*
